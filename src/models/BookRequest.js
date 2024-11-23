@@ -6,20 +6,34 @@ const bookRequestSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  bookName: {
-    type: String,
+  book: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Book',
     required: true
   },
-  author: {
+  selectedDeliveryTime: {
     type: String,
-    required: true
+    required: true,
+    enum: ['3 días', '5 días', '7 días', '10 días']
   },
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected'],
+    enum: ['pending', 'approved', 'rejected', 'processing', 'delivered'],
     default: 'pending'
   },
-  notes: String
+  price: {
+    type: Number,
+    required: true
+  },
+  notes: String,
+  requestDate: {
+    type: Date,
+    default: Date.now
+  },
+  estimatedDeliveryDate: {
+    type: Date,
+    required: true
+  }
 }, { timestamps: true });
 
 export default mongoose.model('BookRequest', bookRequestSchema);

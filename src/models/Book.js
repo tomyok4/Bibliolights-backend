@@ -10,29 +10,25 @@ const bookSchema = new mongoose.Schema({
     required: true,
   },
   description: String,
-  fileUrl: {
+  coverImage: {
     type: String,
-    required: true,
+    required: true 
   },
-  requestLimit: {
+  price: {
     type: Number,
-    default: 100,
+    required: true
+  },
+  deliveryTimes: {
+    type: [{
+      type: String,
+      enum: ['3 días', '5 días', '7 días', '10 días']
+    }],
     required: true
   },
   currentRequests: {
     type: Number,
     default: 0
   },
-  downloads: [{
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
-    downloadedAt: {
-      type: Date,
-      default: Date.now,
-    },
-  }],
 }, { timestamps: true });
 
 export default mongoose.model('Book', bookSchema);

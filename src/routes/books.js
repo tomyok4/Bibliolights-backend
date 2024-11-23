@@ -9,7 +9,7 @@ const router = express.Router();
 // Get all books
 router.get('/', auth, async (req, res) => {
   try {
-    const books = await Book.find().select('-downloads');
+    const books = await Book.find();
     res.json(books);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
@@ -19,7 +19,7 @@ router.get('/', auth, async (req, res) => {
 // Get book details
 router.get('/:id', auth, async (req, res) => {
   try {
-    const book = await Book.findById(req.params.id).select('-downloads');
+    const book = await Book.findById(req.params.id);
     if (!book) {
       return res.status(404).json({ message: 'Book not found' });
     }
@@ -49,23 +49,45 @@ router.post('/:id/favorite', auth, async (req, res) => {
   }
 });
 
-// Download book
-router.get('/:id/download', auth, async (req, res) => {
+// Solicitar un libro existente
+router.post('/:id/request', auth, async (req, res) => {
   try {
+    const { selectedDeliveryTime, notes } = req.body;
     const book = await Book.findById(req.params.id);
+    
     if (!book) {
       return res.status(404).json({ message: 'Book not found' });
     }
 
-    if (book.currentRequests >= book.requestLimit) {
-      return res.status(403).json({ message: 'Book request limit reached' });
+    // Validar que el tiempo de entrega seleccionado sea válido
+    if (!book.deliveryTimes.includes(selectedDeliveryTime)) {
+      return res.status(400).json({ 
+        message: 'Invalid delivery time. Please select from available options.' 
+      });
     }
 
-    book.downloads.push({ user: req.user.userId });
+    // Calcular fecha estimada de entrega
+    const daysToAdd = parseInt(selectedDeliveryTime);
+    const estimatedDeliveryDate = new Date();
+    estimatedDeliveryDate.setDate(estimatedDeliveryDate.getDate() + daysToAdd);
+
+    const request = new BookRequest({
+      user: req.user.userId,
+      book: book._id,
+      selectedDeliveryTime,
+      price: book.price,
+      notes,
+      estimatedDeliveryDate,
+      status: 'pending'
+    });
+
+    await request.save();
+
+    // Incrementar el contador de solicitudes del libro
     book.currentRequests += 1;
     await book.save();
 
-    res.json({ downloadUrl: book.fileUrl });
+    res.status(201).json(request);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -81,15 +103,28 @@ router.get('/user/favorites', auth, async (req, res) => {
   }
 });
 
-// Request a new book
-router.post('/request', auth, async (req, res) => {
+// Get user's book requests
+router.get('/user/requests', auth, async (req, res) => {
+  try {
+    const requests = await BookRequest.find({ user: req.user.userId })
+      .populate('book')
+      .sort('-createdAt');
+    res.json(requests);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Solicitar un libro nuevo (que no está en el sistema)
+router.post('/request-new', auth, async (req, res) => {
   try {
     const { bookName, author, notes } = req.body;
     const bookRequest = new BookRequest({
       user: req.user.userId,
       bookName,
       author,
-      notes
+      notes,
+      status: 'pending'
     });
     await bookRequest.save();
     res.status(201).json(bookRequest);

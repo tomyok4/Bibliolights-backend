@@ -18,11 +18,12 @@ app.use(helmet());
 
 // CORS configuration
 const corsOptions = {
+  // Todo: Agregar dominio railway
   origin: process.env.FRONTEND_URL || ['http://localhost:3000', 'http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  maxAge: 600 // 10 minutes
+  maxAge: 600
 };
 app.use(cors(corsOptions));
 

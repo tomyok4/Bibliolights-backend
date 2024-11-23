@@ -1,21 +1,72 @@
 import express from 'express';
+import {body} from 'express-validator';
 import { auth, adminAuth } from '../middleware/auth.js';
 import Book from '../models/Book.js';
 import BookRequest from '../models/BookRequest.js';
+import { validate } from '../middleware/validate.js';
 
 const router = express.Router();
 
-// Add new book
-router.post('/books', [auth, adminAuth], async (req, res) => {
+const bookValidation = [
+  body('title')
+    .trim()
+    .notEmpty()
+    .withMessage('El título es requerido')
+    .isLength({ max: 200 })
+    .withMessage('El título no puede exceder los 200 caracteres'),
+    
+  body('author')
+    .trim()
+    .notEmpty()
+    .withMessage('El autor es requerido')
+    .isLength({ max: 100 })
+    .withMessage('El nombre del autor no puede exceder los 100 caracteres'),
+    
+  body('description')
+    .optional()
+    .trim()
+    .isLength({ max: 2000 })
+    .withMessage('La descripción no puede exceder los 2000 caracteres'),
+    
+  body('coverImage')
+    .trim()
+    .notEmpty()
+    .withMessage('La URL de la imagen es requerida')
+    .isURL()
+    .withMessage('Debe ser una URL válida'),
+    
+  body('price')
+    .isNumeric()
+    .withMessage('El precio debe ser un número')
+    .custom(value => {
+      if (value <= 0) {
+        throw new Error('El precio debe ser mayor a 0');
+      }
+      return true;
+    }),
+    
+  body('deliveryTimes')
+    .isArray()
+    .withMessage('Los tiempos de entrega deben ser un array')
+    .custom(value => {
+      const validTimes = ['3 días', '5 días', '7 días', '10 días'];
+      if (!value.every(time => validTimes.includes(time))) {
+        throw new Error('Tiempos de entrega inválidos');
+      }
+      return true;
+    })
+];
+
+router.post('/books', [auth, adminAuth, validate(bookValidation)], async (req, res) => {
   try {
-    const { title, author, description, fileUrl, requestLimit } = req.body;
+    const { title, author, description, price, deliveryTimes, coverImage } = req.body;
     const book = new Book({
       title,
       author,
       description,
-      fileUrl,
-      requestLimit: requestLimit || 100,
-      currentRequests: 0
+      price,
+      deliveryTimes,
+      coverImage
     });
 
     await book.save();
@@ -25,8 +76,7 @@ router.post('/books', [auth, adminAuth], async (req, res) => {
   }
 });
 
-// Update book
-router.put('/books/:id', [auth, adminAuth], async (req, res) => {
+router.put('/books/:id', [auth, adminAuth, validate(bookValidation)], async (req, res) => {
   try {
     const book = await Book.findByIdAndUpdate(
       req.params.id,
@@ -50,24 +100,6 @@ router.delete('/books/:id', [auth, adminAuth], async (req, res) => {
       return res.status(404).json({ message: 'Book not found' });
     }
     res.json({ message: 'Book deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Get download statistics with user details
-router.get('/books/:id/stats', [auth, adminAuth], async (req, res) => {
-  try {
-    const book = await Book.findById(req.params.id)
-      .populate('downloads.user', 'email');
-    if (!book) {
-      return res.status(404).json({ message: 'Book not found' });
-    }
-    res.json({
-      downloads: book.downloads,
-      currentRequests: book.currentRequests,
-      requestLimit: book.requestLimit
-    });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -122,4 +154,17 @@ router.put('/requests/:id', [auth, adminAuth], async (req, res) => {
   }
 });
 
+router.post('/make-admin', [auth, adminAuth], async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { isAdmin: true },
+      { new: true }
+    );
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 export { router as default };

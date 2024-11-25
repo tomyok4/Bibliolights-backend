@@ -4,6 +4,7 @@ import { auth, adminAuth } from '../middleware/auth.js';
 import Book from '../models/Book.js';
 import BookRequest from '../models/BookRequest.js';
 import { validate } from '../middleware/validate.js';
+import User from '../models/User.js';
 
 const router = express.Router();
 
@@ -162,9 +163,14 @@ router.post('/make-admin', [auth, adminAuth], async (req, res) => {
       { isAdmin: true },
       { new: true }
     );
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
     res.json(user);
   } catch (error) {
+    console.error('Error en make-admin:', error); // Agregamos log para debug
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 export { router as default };

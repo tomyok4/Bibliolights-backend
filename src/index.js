@@ -15,59 +15,58 @@ const PORT = process.env.PORT || 3000;
 
 app.set('trust proxy', 1);
 
-// Security headers
+// Seguridad: encabezados HTTP
 app.use(helmet());
 
-// CORS configuration
+// Configuración de CORS
 const corsOptions = {
-  // Todo: Agregar dominio railway
-  origin: process.env.FRONTEND_URL || ['http://localhost:3000', 'http://localhost:5173'],
+  origin: process.env.FRONTEND_URL || ['http://localhost:3000', 'http://localhost:5173'], // Agrega tu dominio de frontend aquí (si usas Railway, cambia la URL)
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  maxAge: 600
+  maxAge: 600,
 };
 app.use(cors(corsOptions));
 
-// Rate limiting
+// Limitar las solicitudes por IP
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.',
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100, // Limita a 100 solicitudes por IP
+  message: 'Demasiadas solicitudes desde esta IP, por favor intente más tarde.',
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
 });
 
-// Apply rate limiting to all routes
 app.use(limiter);
 
-// API specific rate limits
+// Limitar las solicitudes de autenticación
 const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5, // 5 attempts per hour
-  message: 'Too many login attempts, please try again later'
+  windowMs: 60 * 60 * 1000, // 1 hora
+  max: 5, // Limita a 5 intentos por hora
+  message: 'Demasiados intentos de inicio de sesión, por favor intente más tarde.',
 });
 
-app.use(express.json());
+app.use(express.json()); // Para analizar el cuerpo de la solicitud como JSON
 
-// Routes with specific rate limits
+// Rutas con limitaciones de tasa específicas
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
-app.use('/api/auth', authRoutes);
-app.use('/api/books', bookRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/auth', authRoutes); // Rutas de autenticación
+app.use('/api/books', bookRoutes); // Rutas de libros
+app.use('/api/admin', adminRoutes); // Rutas de administración
 
-// Error handling middleware
+// Middleware para manejar errores
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+  res.status(500).json({ message: '¡Algo salió mal!' });
 });
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/programming-books')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
+// Conexión a MongoDB
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/bibliolights-users')
+  .then(() => console.log('Conectado a MongoDB'))
+  .catch(err => console.error('Error de conexión a MongoDB:', err));
 
+// Iniciar el servidor
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Servidor corriendo en el puerto ${PORT}`);
 });

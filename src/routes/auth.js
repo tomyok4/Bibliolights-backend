@@ -5,6 +5,7 @@ import { body } from 'express-validator';
 import { validate } from '../middleware/validate.js';
 import User from '../models/User.js';
 import crypto from 'crypto';
+import { auth } from '../middleware/auth.js';  // Middleware de autenticación
 
 const router = express.Router();
 
@@ -134,6 +135,37 @@ router.post('/reset-password',
     } catch (error) {
       res.status(500).json({ message: 'Server error' });
     }
+});
+
+// Validar token
+router.get('/validate', auth, async (req, res) => {
+  try {
+    // El middleware auth ya asegura que el token es válido
+    // y coloca los datos del usuario en req.user
+    const user = await User.findById(req.user.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    res.json({
+      valid: true,
+      user: {
+        userId: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        address: user.address,
+        city: user.city,
+        country: user.country,
+        phoneNumber: user.phoneNumber,
+        dob: user.dob,
+        isAdmin: user.isAdmin,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ valid: false, message: 'Error al validar el token' });
+  }
 });
 
 export { router as default };

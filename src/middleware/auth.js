@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 // Middleware de autenticación general
 export const auth = (req, res, next) => {
   try {
-    // Obtener el token del header 'Authorization'
+    // Obtener el token del encabezado 'Authorization'
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) {
       return res.status(401).json({ message: 'Authentication required' });

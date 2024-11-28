@@ -1,7 +1,7 @@
 import express from 'express';
 import Order from '../models/Order.js';
-import { auth } from '../middleware/auth.js'; // Middleware de autenticación
-import User from '../models/User.js'; // Para verificar si el usuario es admin
+import { auth } from '../middleware/auth.js';  // Middleware de autenticación
+import User from '../models/User.js';  // Para verificar si el usuario es admin
 
 const router = express.Router();
 
@@ -10,7 +10,7 @@ router.post('/create', auth, async (req, res) => {
   try {
     const { books, userEmail, totalAmount } = req.body;
 
-    // Validar que los datos necesarios estén presentes
+    // Verificar que los datos estén presentes
     if (!books || books.length === 0) {
       return res.status(400).json({ message: 'No se han proporcionado libros para el pedido.' });
     }
@@ -28,13 +28,13 @@ router.post('/create', auth, async (req, res) => {
       books,
       userEmail,
       totalAmount,
-      orderDate: new Date(),
+      orderDate: new Date(),  // Fecha de la orden
     });
 
     // Guardar el pedido en la base de datos
     await order.save();
 
-    res.status(201).json(order); // Enviar la respuesta con el pedido creado
+    res.status(201).json(order); // Respuesta con el pedido creado
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error al crear el pedido' });
@@ -98,3 +98,4 @@ router.put('/update/:id', async (req, res) => {
 });
 
 export default router;
+

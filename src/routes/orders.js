@@ -1,7 +1,7 @@
 import express from 'express';
 import Order from '../models/Order.js';
-import { auth } from '../middleware/auth.js';  // Middleware de autenticación
-import User from '../models/User.js';  // Para verificar si el usuario es admin
+import { auth } from '../middleware/auth.js'; // Middleware de autenticación
+import User from '../models/User.js'; // Para verificar si el usuario es admin
 
 const router = express.Router();
 
@@ -9,6 +9,19 @@ const router = express.Router();
 router.post('/create', auth, async (req, res) => {
   try {
     const { books, userEmail, totalAmount } = req.body;
+
+    // Validar que los datos necesarios estén presentes
+    if (!books || books.length === 0) {
+      return res.status(400).json({ message: 'No se han proporcionado libros para el pedido.' });
+    }
+
+    if (!userEmail) {
+      return res.status(400).json({ message: 'El email del usuario es requerido.' });
+    }
+
+    if (!totalAmount || totalAmount <= 0) {
+      return res.status(400).json({ message: 'El monto total es inválido.' });
+    }
 
     // Crear un nuevo pedido con la fecha actual de creación
     const order = new Order({
@@ -21,7 +34,7 @@ router.post('/create', auth, async (req, res) => {
     // Guardar el pedido en la base de datos
     await order.save();
 
-    res.status(201).json(order);
+    res.status(201).json(order); // Enviar la respuesta con el pedido creado
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error al crear el pedido' });
@@ -52,11 +65,11 @@ router.get('/user', auth, async (req, res) => {
   try {
     const orders = await Order.find({ userEmail: req.user.email }); // Filtramos por el email del usuario actual
 
-    if (!orders) {
+    if (orders.length === 0) {
       return res.status(404).json({ message: 'No se encontraron pedidos para este usuario.' });
     }
 
-    res.json(orders);
+    res.json(orders); // Retorna los pedidos encontrados
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error al obtener los pedidos' });
@@ -72,10 +85,12 @@ router.put('/update/:id', async (req, res) => {
       { orderStatus, trackingUrl },
       { new: true }
     );
+
     if (!order) {
       return res.status(404).json({ message: 'Pedido no encontrado' });
     }
-    res.json(order);
+
+    res.json(order); // Retorna el pedido actualizado
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error al actualizar el pedido' });

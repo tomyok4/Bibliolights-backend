@@ -8,27 +8,22 @@ const router = express.Router();
 // Crear un nuevo pedido
 router.post('/create', auth, async (req, res) => {
   try {
-    const { books, userEmail, totalAmount } = req.body;
+    const { items } = req.body; // Ahora "items" será un array con los libros y sus cantidades
 
     // Verificar que los datos estén presentes
-    if (!books || books.length === 0) {
+    if (!items || items.length === 0) {
       return res.status(400).json({ message: 'No se han proporcionado libros para el pedido.' });
     }
 
-    if (!userEmail) {
-      return res.status(400).json({ message: 'El email del usuario es requerido.' });
-    }
+    // Calcular el total de la compra
+    const totalAmount = items.reduce((total, item) => total + item.price * item.quantity, 0);
 
-    if (!totalAmount || totalAmount <= 0) {
-      return res.status(400).json({ message: 'El monto total es inválido.' });
-    }
-
-    // Crear un nuevo pedido con la fecha actual de creación
+    // Crear el nuevo pedido
     const order = new Order({
-      books,
-      userEmail,
-      totalAmount,
-      orderDate: new Date(),  // Fecha de la orden
+      userId: req.user.userId,  // Usamos el ID del usuario autenticado
+      items,                    // Pasamos los productos del carrito
+      totalAmount,              // El monto total calculado
+      orderDate: new Date(),    // Fecha actual del pedido
     });
 
     // Guardar el pedido en la base de datos
@@ -63,7 +58,7 @@ router.get('/', auth, async (req, res) => {
 // Obtener los pedidos de un usuario (solo el usuario autenticado puede ver sus propios pedidos)
 router.get('/user', auth, async (req, res) => {
   try {
-    const orders = await Order.find({ userEmail: req.user.email }); // Filtramos por el email del usuario actual
+    const orders = await Order.find({ userId: req.user.userId }); // Filtramos por el ID del usuario autenticado
 
     if (orders.length === 0) {
       return res.status(404).json({ message: 'No se encontraron pedidos para este usuario.' });
@@ -77,7 +72,7 @@ router.get('/user', auth, async (req, res) => {
 });
 
 // Actualizar el estado de un pedido (solo admin puede actualizar)
-router.put('/update/:id', async (req, res) => {
+router.put('/update/:id', auth, async (req, res) => {
   try {
     const { orderStatus, trackingUrl } = req.body;
     const order = await Order.findByIdAndUpdate(

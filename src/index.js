@@ -7,8 +7,7 @@ import helmet from 'helmet';
 import authRoutes from './routes/auth.js';
 import bookRoutes from './routes/books.js';
 import adminRoutes from './routes/admin.js';
-import orderRoutes from './routes/orders.js';
-import userRoutes from './routes/users.js'; // Importamos las rutas de usuarios
+import orderRoutes from './routes/orders.js'; 
 
 dotenv.config();
 
@@ -56,7 +55,6 @@ app.use('/api/auth', authRoutes); // Rutas de autenticación
 app.use('/api/books', bookRoutes); // Rutas de libros
 app.use('/api/admin', adminRoutes); // Rutas de administración
 app.use('/api/orders', orderRoutes); // Rutas de pedidos
-app.use('/api/users', userRoutes); // Rutas de usuarios
 
 // Middleware de manejo de errores
 app.use((err, req, res, next) => {
@@ -72,5 +70,3 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/bibliolights-us
 // Iniciar el servidor
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
-});
-

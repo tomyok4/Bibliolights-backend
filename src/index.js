@@ -8,6 +8,7 @@ import authRoutes from './routes/auth.js';
 import bookRoutes from './routes/books.js';
 import adminRoutes from './routes/admin.js';
 import orderRoutes from './routes/orders.js'; 
+import userDetailsRoutes from './routes/userDetails.js';
 
 dotenv.config();
 
@@ -55,6 +56,7 @@ app.use('/api/auth', authRoutes); // Rutas de autenticación
 app.use('/api/books', bookRoutes); // Rutas de libros
 app.use('/api/admin', adminRoutes); // Rutas de administración
 app.use('/api/orders', orderRoutes); // Rutas de pedidos
+app.use('/api/user-details', userDetailsRoutes); // Rutas de detalles de usuario
 
 // Middleware de manejo de errores
 app.use((err, req, res, next) => {

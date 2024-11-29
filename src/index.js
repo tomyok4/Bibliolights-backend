@@ -70,3 +70,4 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/bibliolights-us
 // Iniciar el servidor
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
+});

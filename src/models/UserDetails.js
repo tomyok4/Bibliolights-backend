@@ -1,5 +1,4 @@
 // src/models/UserDetails.js
-
 import mongoose from 'mongoose';
 
 const userDetailsSchema = new mongoose.Schema({
@@ -10,31 +9,31 @@ const userDetailsSchema = new mongoose.Schema({
   },
   firstName: {
     type: String,
-    default: '',
+    default: null, // Permitir que sea null
   },
   lastName: {
     type: String,
-    default: '',
+    default: null, // Permitir que sea null
   },
   address: {
     type: String,
-    default: '',
+    default: null, // Permitir que sea null
   },
   city: {
     type: String,
-    default: '',
+    default: null, // Permitir que sea null
   },
   country: {
     type: String,
-    default: '',
+    default: null, // Permitir que sea null
   },
   phoneNumber: {
     type: String,
-    default: '',
+    default: null, // Permitir que sea null
   },
   dob: {
     type: Date,
-    default: null,
+    default: null, // Permitir que sea null
   },
 }, { timestamps: true });
 

@@ -31,16 +31,25 @@ router.put('/details', auth, async (req, res) => {
 
     if (!details) {
       // Crear nuevos detalles si no existen
-      details = new UserDetails({ userId: req.user._id, firstName, lastName, address, city, country, phoneNumber, dob });
+      details = new UserDetails({ 
+        userId: req.user._id, 
+        firstName: firstName ?? null, 
+        lastName: lastName ?? null, 
+        address: address ?? null, 
+        city: city ?? null, 
+        country: country ?? null, 
+        phoneNumber: phoneNumber ?? null, 
+        dob: dob ?? null 
+      });
     } else {
       // Actualizar los detalles existentes
-      details.firstName = firstName || details.firstName;
-      details.lastName = lastName || details.lastName;
-      details.address = address || details.address;
-      details.city = city || details.city;
-      details.country = country || details.country;
-      details.phoneNumber = phoneNumber || details.phoneNumber;
-      details.dob = dob || details.dob;
+      details.firstName = firstName ?? null;  // Asignar null si no se proporciona un valor
+      details.lastName = lastName ?? null;    // Asignar null si no se proporciona un valor
+      details.address = address ?? null;      // Asignar null si no se proporciona un valor
+      details.city = city ?? null;            // Asignar null si no se proporciona un valor
+      details.country = country ?? null;      // Asignar null si no se proporciona un valor
+      details.phoneNumber = phoneNumber ?? null; // Asignar null si no se proporciona un valor
+      details.dob = dob ?? null;              // Asignar null si no se proporciona un valor
     }
 
     await details.save();
